@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="city-info.css" rel="stylesheet"></link>
+  </head>
+
+  <body>
+    Pick your PVD: 
+	<select name="pvd" id="pvd-selector">
+  <option value="1">1</option> 
+  <option value="2">2</option>
+  <option value="3">3</option>
+	</select>
+	<button id="update">Update</button>
+    <script>
+
+function pvdChanged() {
+	window.parent.postMessage({action:"PVDchanged", value:pvd.value}, "*");
+}
+var pvd = window.document.getElementById("pvd-selector");
+pvd.addEventListener("change", pvdChanged);
+
+function update() {
+	window.parent.postMessage({action:"update"}, "*");
+}
+var update_button = window.document.getElementById("update");
+update_button.addEventListener("click", update);
+
+function addOnMessage(e) {
+	if(e.data.action == "updatePVDs") {
+		pvd.innerHTML=""
+		var selected = ("selected" in e.data)?e.data.selected:null
+		for (var id in e.data.pvds) {
+			var option = document.createElement("option");
+			option.value = id;
+			option.text = e.data.pvds[id].name;
+			if(selected == id)
+				option.selected = "selected"
+			pvd.add(option);
+		}
+	}
+}
+
+window.addEventListener("message", addOnMessage, false);
+window.parent.postMessage({action:"register"}, "*");
+	</script>
+  </body>
+</html>
+

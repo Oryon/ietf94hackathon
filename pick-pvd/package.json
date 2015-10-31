@@ -1,0 +1,16 @@
+{
+  "title": "Pick the PVD",
+  "name": "pick-pvd",
+  "version": "0.0.1",
+  "description": "With this add-on you can select the PVD you want",
+  "main": "index.js",
+  "author": "Homenet",
+  "engines": {
+    "firefox": ">=38.0a1",
+    "fennec": ">=38.0a1"
+  },
+  "license": "MIT",
+  "keywords": [
+    "jetpack"
+  ]
+}
