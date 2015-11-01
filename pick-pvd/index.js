@@ -1,7 +1,4 @@
-var pvds = {
-	"Cable" : {name:"Cable", address:"2001:2232::1"},
-	"DSL" : {name:"DSL", address:"2001:2232::1"}
-}
+var pvds = {}
 
 var selected = null
 
@@ -13,24 +10,28 @@ var source = null
 
 function updatePVDs() {
 	var m = {action:"updatePVDs", pvds:pvds}
-	if (selected == null)
+	/*if (selected == null)
 		for(var k in pvds) {
 			selected = k
 			break
-		}
-	if (selected != null)
+		}*/
+	if (selected != null) {
 		m["selected"] = selected
+		m["pvd"] = pvds[selected]
+	}
 	source.postMessage(m, origin)
 }
 
 function rcvMessage(e) {
 	console.log("Received message: "+JSON.stringify(e.data));
 	if(e.data.action == "PVDchanged") {
-		selected = e.data.value;
+		selected = (e.data.value=="none")?null:e.data.value;
+                updatePVDs()
 		write()
 	} else if (e.data.action == "register") {
 		origin = e.origin
 		source = e.source
+		finishUpdate()
 		getAddresses()
 		updatePVDs()
 		write()
@@ -70,6 +71,7 @@ function getAddr() {
         function(subject, topic, data) {
             console.log('subject=' + subject + ', topic=' + topic + ', data=' + data);
             console.log('bash script finished executing, returned ' + process.exitValue);
+            finishUpdate()
     });
 
     return rc;
@@ -91,29 +93,39 @@ function read() {
 
 function getAddresses() {
 	getAddr()
+}
+
+function finishUpdate() {
+	console.log("---------------FINISH UPDATE");
 	out = read()
 	addrs = out.split("\n")
 	pvds = {}
 	for (var i = 0; i<addrs.length; i++) {
-		addrs[i]=addrs[i].split(",")		
-		if(addrs[i] != "")
-			pvds[addrs[i][0]] = {name:addrs[i][1], address:addrs[i][2]}
+		addrs[i]=addrs[i].split(",")	
+		if(addrs[i].length >= 2) {
+			console.log("Adding PVD : "+addrs[i][1]);
+			pvds[addrs[i][0]] = {name:addrs[i][1], addresses:addrs[i][2].split("-")}
+		}
 	}
 }
 
 
 function write() {
+        if(selected == null)
+		return
 	var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
 	file.initWithPath("/home/pierre/ietf94hackathon/pick-pvd/address");
 	var s = Cc["@mozilla.org/network/file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
-	s.init(file, -1, -1, 0);
-	/*var sstream = Cc["@mozilla.org/scriptableoutputstream;1"].createInstance(Ci.nsIScriptableOutputStream);
-	sstream.init(s);
-	sstream.write(pvds[selected].address);
-	sstream.close();*/
-	console.log("Writing chosen address: "+pvds[selected].address);
-	s.write(pvds[selected].address, pvds[selected].address.length)
-	s.close();
+	if(selected == null) {
+		//s.write("", 0)
+		s.close();
+	} else {
+		s.init(file, -1, -1, 0);
+	        a = pvds[selected].addresses.join(",")
+	        console.log("Writing chosen addresses: "+a);
+		s.write(a, a.length)
+		s.close();
+	}
 }
 
 

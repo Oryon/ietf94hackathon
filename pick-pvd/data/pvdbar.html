@@ -7,9 +7,7 @@
   <body>
     Pick your PVD: 
 	<select name="pvd" id="pvd-selector">
-  <option value="1">1</option> 
-  <option value="2">2</option>
-  <option value="3">3</option>
+  <option value="none">None</option>
 	</select>
 	<button id="update">Update</button>
     <script>
@@ -30,6 +28,10 @@ function addOnMessage(e) {
 	if(e.data.action == "updatePVDs") {
 		pvd.innerHTML=""
 		var selected = ("selected" in e.data)?e.data.selected:null
+		var option = document.createElement("option");
+		option.value = "none"
+		option.text = "No PVD selected"	
+		pvd.add(option);
 		for (var id in e.data.pvds) {
 			var option = document.createElement("option");
 			option.value = id;
